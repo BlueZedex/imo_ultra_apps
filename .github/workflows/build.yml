@@ -22,10 +22,11 @@ jobs:
         run: flutter pub get
       - name: Fix Android SDK 35 & JCenter
         run: |
+          flutter create .
           find /home/runner/.pub-cache -name "build.gradle" -exec sed -i 's/jcenter()/mavenCentral()/g' {} +
-          sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle*
-          sed -i 's/flutter.compileSdkVersion/36/g' android/app/build.gradle*
-          sed -i 's/flutter.targetSdkVersion/36/g' android/app/build.gradle*
+          sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle
+          sed -i 's/flutter.compileSdkVersion/36/g' android/app/build.gradle
+          sed -i 's/flutter.targetSdkVersion/36/g' android/app/build.gradle
       - name: Build Debug APK
         run: flutter build apk --debug
       - name: Upload APK
