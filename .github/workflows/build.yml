@@ -20,19 +20,21 @@ jobs:
         run: flutter create --project-name imo_clone_app .
       - name: Get Dependencies
         run: flutter pub get
-      - name: Configure Android SDK 34 & Fix JCenter
+      - name: Force Fix Android Gradle Settings
         run: |
+          python3 -c '
+          import glob, re
+          for path in glob.glob("android/app/build.gradle*"):
+              with open(path, "r") as f:
+                  s = f.read()
+              s = re.sub(r"minSdk\s*=?\s*flutter\.minSdkVersion", "minSdk = 24" if path.endswith(".kts") else "minSdkVersion 24", s)
+              s = re.sub(r"compileSdk\s*=?\s*flutter\.compileSdkVersion", "compileSdk = 35" if path.endswith(".kts") else "compileSdkVersion 35", s)
+              s = re.sub(r"targetSdk\s*=?\s*flutter\.targetSdkVersion", "targetSdk = 35" if path.endswith(".kts") else "targetSdkVersion 35", s)
+              with open(path, "w") as f:
+                  f.write(s)
+              print("Updated:", path)
+          '
           find /home/runner/.pub-cache -name "build.gradle" -exec sed -i 's/jcenter()/mavenCentral()/g' {} +
-          if [ -f android/app/build.gradle.kts ]; then
-            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/g' android/app/build.gradle.kts
-            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/g' android/app/build.gradle.kts
-            sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 34/g' android/app/build.gradle.kts
-          fi
-          if [ -f android/app/build.gradle ]; then
-            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/g' android/app/build.gradle
-            sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' android/app/build.gradle
-            sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' android/app/build.gradle
-          fi
       - name: Build Debug APK
         run: flutter build apk --debug
       - name: Upload APK
