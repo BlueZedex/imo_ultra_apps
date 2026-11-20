@@ -20,21 +20,12 @@ jobs:
         run: flutter create --project-name imo_clone_app .
       - name: Get Dependencies
         run: flutter pub get
-      - name: Force Fix Android Gradle Settings
+      - name: Fix Android SDK 35 & JCenter
         run: |
-          python3 -c '
-          import glob, re
-          for path in glob.glob("android/app/build.gradle*"):
-              with open(path, "r") as f:
-                  s = f.read()
-              s = re.sub(r"minSdk\s*=?\s*flutter\.minSdkVersion", "minSdk = 24" if path.endswith(".kts") else "minSdkVersion 24", s)
-              s = re.sub(r"compileSdk\s*=?\s*flutter\.compileSdkVersion", "compileSdk = 35" if path.endswith(".kts") else "compileSdkVersion 35", s)
-              s = re.sub(r"targetSdk\s*=?\s*flutter\.targetSdkVersion", "targetSdk = 35" if path.endswith(".kts") else "targetSdkVersion 35", s)
-              with open(path, "w") as f:
-                  f.write(s)
-              print("Updated:", path)
-          '
           find /home/runner/.pub-cache -name "build.gradle" -exec sed -i 's/jcenter()/mavenCentral()/g' {} +
+          sed -i 's/flutter.minSdkVersion/24/g' android/app/build.gradle*
+          sed -i 's/flutter.compileSdkVersion/35/g' android/app/build.gradle*
+          sed -i 's/flutter.targetSdkVersion/35/g' android/app/build.gradle*
       - name: Build Debug APK
         run: flutter build apk --debug
       - name: Upload APK
